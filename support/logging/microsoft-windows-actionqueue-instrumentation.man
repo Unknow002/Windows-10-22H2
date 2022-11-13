@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<assemblyIdentity buildType="release" language="neutral" name="Microsoft-Windows-ActionQueue-Instrumentation" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" version="10.0.10011.16384" versionScope="nonSxS"></assemblyIdentity>
+	<registryKeys>
+		<!-- ActionQueue Provider -->
+		<registryKey keyName="HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\WMI\AutoLogger\Microsoft-Windows-Setup\{0DD4D48E-2BBF-452f-A7EC-BA3DBA8407AE}">
+			<registryValue name="Enabled" value="1" valueType="REG_DWORD"></registryValue>
+			<registryValue name="EnableLevel" value="4" valueType="REG_DWORD"></registryValue>
+		</registryKey>
+	</registryKeys>
+	<instrumentation xmlns:win="http://manifests.microsoft.com/win/2004/08/windows/events" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+		<events xmlns="http://schemas.microsoft.com/win/2004/08/events" xmlns:auto-ns1="urn:schemas-microsoft-com:asm.v3">
+			<!--
+           * Microsoft Windows ActionQueue Provider *
+           Author: jasontho (Jason Thorsness)
+      -->
+			<provider guid="{0DD4D48E-2BBF-452f-A7EC-BA3DBA8407AE}" message="$(string.ActionQueue.ProviderMessage)" messageFileName="%SystemRoot%\system32\actionqueue.dll" name="Microsoft-Windows-ActionQueue" resourceFileName="%SystemRoot%\system32\actionqueue.dll" symbol="Microsoft_Windows_ActionQueue">
+				<channels>
+					<channel chid="chaActionQueueAnalytic" name="Microsoft-Windows-ActionQueue/Analytic" type="Analytic"></channel>
+					<!-- This is the official Setup channel as seen in the Event Viewer. -->
+					<importChannel chid="chaSetup" name="Setup"></importChannel>
+				</channels>
+				<keywords>
+					<!-- Events with the Performance keyword come in opcode=win:start/win:stop pairs 
+               with the same task name.  An individual thread will complete once instance of
+               a task with a particular type before starting a new one. -->
+					<keyword mask="0x00000001" message="$(string.Performance.KeywordMessage)" name="keyPerformance"></keyword>
+				</keywords>
+				<templates>
+					<template tid="tidActionQueue">
+						<data inType="win:UnicodeString" name="QueueFile"></data>
+					</template>
+					<template tid="tidCommandLine">
+						<data inType="win:AnsiString" name="ExecutableName"></data>
+						<data inType="win:AnsiString" name="Arguments"></data>
+						<data inType="win:AnsiString" name="Identity"></data>
+						<data inType="win:AnsiString" name="Pass"></data>
+					</template>
+					<template tid="tidErrorCodeResult">
+						<data inType="win:UInt32" name="ErrorCode"></data>
+					</template>
+				</templates>
+				<tasks>
+					<task eventGUID="{EB975F84-54F9-4142-965B-97D721D131AC}" message="$(string.ProcessActionQueue.TaskMessage)" name="tskProcessActionQueue" value="1000"></task>
+					<task eventGUID="{4E491D3C-7AF8-4dd8-A778-E818584F7796}" message="$(string.ExecuteCommand.TaskMessage)" name="tskExecuteCommand" value="2000"></task>
+				</tasks>
+				<events>
+					<!-- Official Setup Channel (Will show up in the Event Viewer) Events -->
+					<!-- ActionQueue Analytic Events -->
+					<!-- ProcessActionQueue -->
+					<event channel="chaActionQueueAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.ProcessActionQueue.StartMessage)" opcode="win:Start" symbol="ProcessActionQueueStart" task="tskProcessActionQueue" template="tidActionQueue" value="1001"></event>
+					<event channel="chaActionQueueAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.ProcessActionQueue.StopMessage)" opcode="win:Stop" symbol="ProcessActionQueueStop" task="tskProcessActionQueue" template="tidErrorCodeResult" value="1002"></event>
+					<!-- Execute Queue Command -->
+					<event channel="chaActionQueueAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.ExecuteCommand.StartMessage)" opcode="win:Start" symbol="ExecuteCommandStart" task="tskExecuteCommand" template="tidCommandLine" value="2001"></event>
+					<event channel="chaActionQueueAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.ExecuteCommand.StopMessage)" opcode="win:Stop" symbol="ExecuteCommandStop" task="tskExecuteCommand" template="tidErrorCodeResult" value="2002"></event>
+				</events>
+			</provider>
+		</events>
+	</instrumentation>
+	<localization>
+		<resources culture="en-US">
+			<stringTable>
+				<!-- Keywords -->
+				<string id="Performance.KeywordMessage" value="Performance"></string>
+				<!-- Providers -->
+				<string id="ActionQueue.ProviderMessage" value="Microsoft-Windows-ActionQueue"></string>
+				<!-- ProcessActionQueue -->
+				<string id="ProcessActionQueue.TaskMessage" value="Process Action Queue"></string>
+				<string id="ProcessActionQueue.StartMessage" value="Processing Action Queue &quot;%1&quot;."></string>
+				<string id="ProcessActionQueue.StopMessage" value="Finished processing Action Queue with status %1."></string>
+				<!-- ExecuteCommand -->
+				<string id="ExecuteCommand.TaskMessage" value="Execute Command"></string>
+				<string id="ExecuteCommand.StartMessage" value="Executing &quot;%1&quot; with arguments &quot;%2&quot; for component &quot;%3&quot; in unattend pass &quot;%4&quot;."></string>
+				<string id="ExecuteCommand.StopMessage" value="Command completed with status %1."></string>
+			</stringTable>
+		</resources>
+	</localization>
+	<cbb:debuggingInfo xmlns:cbb="urn:schemas-microsoft-com:asm.internal.v1">
+		<cbb:sourceManifest sourcePath="%sdxmaproot%\onecore\base\smi\src\tools\actionqueue\microsoft-windows-actionqueue-instrumentation.man"></cbb:sourceManifest>
+	</cbb:debuggingInfo>
+</assembly>

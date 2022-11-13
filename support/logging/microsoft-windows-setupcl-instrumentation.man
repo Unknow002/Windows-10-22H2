@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<assemblyIdentity buildType="release" language="neutral" name="Microsoft-Windows-SetupCl-Events" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" version="10.0.10011.16384" versionScope="nonSxS"></assemblyIdentity>
+	<registryKeys>
+		<!-- AutoLogger Configuration -->
+		<registryKey keyName="HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\WMI\AutoLogger\Microsoft-Windows-Setup\{75EBC33E-D017-4D0F-93AB-0B4F86579164}">
+			<registryValue name="Enabled" value="1" valueType="REG_DWORD"></registryValue>
+			<registryValue name="EnableLevel" value="4" valueType="REG_DWORD"></registryValue>
+		</registryKey>
+		<registryKey keyName="HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\WMI\AutoLogger\SetupPlatform\{75EBC33E-D017-4D0F-93AB-0B4F86579164}">
+			<registryValue name="Enabled" value="1" valueType="REG_DWORD"></registryValue>
+			<registryValue name="EnableLevel" value="4" valueType="REG_DWORD"></registryValue>
+		</registryKey>
+	</registryKeys>
+	<instrumentation xmlns:setupcl="http://manifests.microsoft.com/win/2004/08/windows/setupcl" xmlns:win="http://manifests.microsoft.com/win/2004/08/windows/events">
+		<events xmlns="http://schemas.microsoft.com/win/2004/08/events">
+			<provider guid="{75ebc33e-d017-4d0f-93ab-0b4f86579164}" message="$(string.SetupCl.ProviderMessage)" messageFileName="%windir%\system32\setupcl.dll" name="Microsoft-Windows-SetupCl" resourceFileName="%windir%\system32\setupcl.dll" symbol="SclEventProvider">
+				<channels>
+					<channel chid="chaSetupClAnalytic" name="Microsoft-Windows-SetupCl/Analytic" type="Analytic"></channel>
+				</channels>
+				<keywords>
+					<keyword mask="0x00000001" name="keyPerformance"></keyword>
+					<keyword mask="0x00000002" name="keyDiagnostic"></keyword>
+					<keyword mask="0x00000004" name="keyTelemetry"></keyword>
+				</keywords>
+				<templates>
+					<template tid="Generic_Statistic">
+						<data inType="win:UnicodeString" name="Name"></data>
+						<data inType="win:UnicodeString" name="Description"></data>
+						<data inType="win:UInt64" name="Statistic"></data>
+					</template>
+					<template tid="Generic_Message">
+						<data inType="win:UInt32" name="SourceLine"></data>
+						<data inType="win:AnsiString" name="SourceFunction"></data>
+						<data inType="win:AnsiString" name="Message"></data>
+					</template>
+					<template tid="HiveInformation">
+						<data inType="win:UnicodeString" name="HiveName"></data>
+					</template>
+					<template tid="SidParameter">
+						<data inType="win:SID" name="SID"></data>
+					</template>
+					<template tid="PathParameter">
+						<data inType="win:UnicodeString" name="Path"></data>
+					</template>
+					<template tid="MessageWithStatus">
+						<data inType="win:UnicodeString" name="Message"></data>
+						<data inType="win:HexInt32" name="Status"></data>
+					</template>
+				</templates>
+				<tasks>
+					<task eventGUID="{DE38E7A9-07DD-467B-9C3E-90C4EE22F0DF}" message="$(string.SetupCl.TaskMessage)" name="tskSetupCl" value="1000"></task>
+				</tasks>
+				<events>
+					<event channel="chaSetupClAnalytic" keywords="keyDiagnostic" level="win:Informational" message="$(string.Generic_Statistic_Message)" opcode="win:Info" symbol="SclEvent_Generic_Statistic" task="tskSetupCl" template="Generic_Statistic" value="1"></event>
+					<event channel="chaSetupClAnalytic" keywords="keyDiagnostic" level="win:Error" message="$(string.Generic_Message_Message)" opcode="win:Info" symbol="SclEvent_Generic_Error" task="tskSetupCl" template="Generic_Message" value="2"></event>
+					<event channel="chaSetupClAnalytic" keywords="keyDiagnostic" level="win:Informational" message="$(string.Generic_Message_Message)" opcode="win:Info" symbol="SclEvent_Generic_Info" task="tskSetupCl" template="Generic_Message" value="3"></event>
+					<event channel="chaSetupClAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.ProcessRegistry_Start_Message)" opcode="win:Start" symbol="SclEvent_ProcessRegistry_Start" task="tskSetupCl" value="4"></event>
+					<event channel="chaSetupClAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.ProcessRegistry_Stop_Message)" opcode="win:Stop" symbol="SclEvent_ProcessRegistry_Stop" task="tskSetupCl" value="5"></event>
+					<event channel="chaSetupClAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.ProcessVolumes_Start_Message)" opcode="win:Start" symbol="SclEvent_ProcessVolumes_Start" task="tskSetupCl" value="6"></event>
+					<event channel="chaSetupClAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.ProcessVolumes_Stop_Message)" opcode="win:Stop" symbol="SclEvent_ProcessVolumes_Stop" task="tskSetupCl" value="7"></event>
+					<event channel="chaSetupClAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.ResetDiskSignatures_Start_Message)" opcode="win:Start" symbol="SclEvent_ResetDiskSignatures_Start" task="tskSetupCl" value="8"></event>
+					<event channel="chaSetupClAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.ResetDiskSignatures_Stop_Message)" opcode="win:Stop" symbol="SclEvent_ResetDiskSignatures_Stop" task="tskSetupCl" value="9"></event>
+					<event channel="chaSetupClAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.ProcessSystemRegistry_Start_Message)" opcode="win:Start" symbol="SclEvent_ProcessSystemRegistry_Start" task="tskSetupCl" value="10"></event>
+					<event channel="chaSetupClAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.ProcessSystemRegistry_Stop_Message)" opcode="win:Stop" symbol="SclEvent_ProcessSystemRegistry_Stop" task="tskSetupCl" value="11"></event>
+					<event channel="chaSetupClAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.ProcessRegistryHive_Start_Message)" opcode="win:Start" symbol="SclEvent_ProcessRegistryHive_Start" task="tskSetupCl" template="HiveInformation" value="12"></event>
+					<event channel="chaSetupClAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.ProcessRegistryHive_Stop_Message)" opcode="win:Stop" symbol="SclEvent_ProcessRegistryHive_Stop" task="tskSetupCl" template="HiveInformation" value="13"></event>
+					<event channel="chaSetupClAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.ProcessUserProfiles_Start_Message)" opcode="win:Start" symbol="SclEvent_ProcessUserProfiles_Start" task="tskSetupCl" value="14"></event>
+					<event channel="chaSetupClAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.ProcessUserProfiles_Stop_Message)" opcode="win:Stop" symbol="SclEvent_ProcessUserProfiles_Stop" task="tskSetupCl" value="15"></event>
+					<event channel="chaSetupClAnalytic" keywords="keyDiagnostic" level="win:Informational" message="$(string.DeterminedOldSid_Message)" opcode="win:Info" symbol="SclEvent_DeterminedOldSid" task="tskSetupCl" template="SidParameter" value="16"></event>
+					<event channel="chaSetupClAnalytic" keywords="keyDiagnostic" level="win:Informational" message="$(string.DeterminedNewSid_Message)" opcode="win:Info" symbol="SclEvent_DeterminedNewSid" task="tskSetupCl" template="SidParameter" value="17"></event>
+					<event channel="chaSetupClAnalytic" keywords="keyDiagnostic" level="win:Informational" message="$(string.DeterminedOldPath_Message)" opcode="win:Info" symbol="SclEvent_DeterminedOldPath" task="tskSetupCl" template="PathParameter" value="18"></event>
+					<event channel="chaSetupClAnalytic" keywords="keyDiagnostic" level="win:Informational" message="$(string.DeterminedNewPath_Message)" opcode="win:Info" symbol="SclEvent_DeterminedNewPath" task="tskSetupCl" template="PathParameter" value="19"></event>
+					<event channel="chaSetupClAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.RetargetLinks_Start_Message)" opcode="win:Start" symbol="SclEvent_RetargetLinks_Start" task="tskSetupCl" value="20"></event>
+					<event channel="chaSetupClAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.RetargetLinks_Stop_Message)" opcode="win:Stop" symbol="SclEvent_RetargetLinks_Stop" task="tskSetupCl" value="21"></event>
+					<event channel="chaSetupClAnalytic" keywords="keyDiagnostic" level="win:Error" message="$(string.ErrorWithStatus_Message)" opcode="win:Info" symbol="SclEvent_ErrorWithStatus" task="tskSetupCl" template="MessageWithStatus" value="22"></event>
+					<event channel="chaSetupClAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.ExtendPartition_Start_Message)" opcode="win:Start" symbol="SclEvent_ExtendPartition_Start" task="tskSetupCl" value="23"></event>
+					<event channel="chaSetupClAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.ExtendPartition_Stop_Message)" opcode="win:Stop" symbol="SclEvent_ExtendPartition_Stop" task="tskSetupCl" value="24"></event>
+					<event channel="chaSetupClAnalytic" keywords="keyDiagnostic" level="win:Informational" message="$(string.DeterminedPartitionName_Message)" opcode="win:Info" symbol="SclEvent_DeterminedPartitionName" task="tskSetupCl" template="PathParameter" value="25"></event>
+					<event channel="chaSetupClAnalytic" keywords="keyDiagnostic" level="win:Warning" message="$(string.Generic_Message_Message)" opcode="win:Info" symbol="SclEvent_Generic_Warning" task="tskSetupCl" template="Generic_Message" value="26"></event>
+					<event channel="chaSetupClAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.ExecuteUpgHives_Start_Message)" opcode="win:Start" symbol="SclEvent_ExecuteUpgHives_Start" task="tskSetupCl" value="27"></event>
+					<event channel="chaSetupClAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.ExecuteUpgHives_Stop_Message)" opcode="win:Stop" symbol="SclEvent_ExecuteUpgHives_Stop" task="tskSetupCl" value="28"></event>
+					<event channel="chaSetupClAnalytic" keywords="keyTelemetry" level="win:Informational" message="$(string.ExecuteRequest_Start_Message)" opcode="win:Start" symbol="SclEvent_ExecuteRequest_Start" task="tskSetupCl" value="29"></event>
+					<event channel="chaSetupClAnalytic" keywords="keyTelemetry" level="win:Informational" message="$(string.ExecuteRequest_Stop_Message)" opcode="win:Stop" symbol="SclEvent_ExecuteRequest_Stop" task="tskSetupCl" value="30"></event>
+				</events>
+			</provider>
+		</events>
+	</instrumentation>
+	<localization>
+		<resources culture="en-US">
+			<stringTable>
+				<!-- Providers -->
+				<string id="SetupCl.ProviderMessage" value="Microsoft-Windows-SetupCl"></string>
+				<string id="SetupCl.TaskMessage" value="SetupCl task"></string>
+				<string id="Generic_Statistic_Message" value="SetupCl statistic (%1): %2 = %3."></string>
+				<string id="Generic_Message_Message" value="%2@%1 : %3"></string>
+				<string id="ProcessRegistry_Start_Message" value="SetupCl has started processing the registry to update SIDs and file paths (as necessary)."></string>
+				<string id="ProcessRegistry_Stop_Message" value="SetupCl has finished processing the registry to update SIDs and file paths (as necessary)."></string>
+				<string id="ProcessVolumes_Start_Message" value="SetupCl has started processing the file system to update SIDs."></string>
+				<string id="ProcessVolumes_Stop_Message" value="SetupCl has finished processing the file system to update SIDs."></string>
+				<string id="ResetDiskSignatures_Start_Message" value="SetupCl has started updating disk signatures."></string>
+				<string id="ResetDiskSignatures_Stop_Message" value="SetupCl has finished updating disk signatures."></string>
+				<string id="ProcessSystemRegistry_Start_Message" value="SetupCl has started processing system registry hives."></string>
+				<string id="ProcessSystemRegistry_Stop_Message" value="SetupCl has finished processing system registry hives."></string>
+				<string id="ProcessRegistryHive_Start_Message" value="SetupCl has started processing system registry hive: %1."></string>
+				<string id="ProcessRegistryHive_Stop_Message" value="SetupCl has finished processing system registry hive: %1."></string>
+				<string id="ProcessUserProfiles_Start_Message" value="SetupCl has started processing user profile hives."></string>
+				<string id="ProcessUserProfiles_Stop_Message" value="SetupCl has finished processing user profile hives."></string>
+				<string id="DeterminedOldSid_Message" value="SetupCl will replace all instances of SID: [%1]."></string>
+				<string id="DeterminedNewSid_Message" value="SetupCl will rewrite the old SID to: [%1]."></string>
+				<string id="DeterminedOldPath_Message" value="SetupCl will replace all instances of path: [%1]."></string>
+				<string id="DeterminedNewPath_Message" value="SetupCl will rewrite the old path to: [%1]."></string>
+				<string id="RetargetLinks_Start_Message" value="SetupCl has started retargeting symbolic links and directory junctions."></string>
+				<string id="RetargetLinks_Stop_Message" value="SetupCl has finished retargeting symbolic links and directory junctions."></string>
+				<string id="ErrorWithStatus_Message" value="Error: %1 (status = 0x%2)"></string>
+				<string id="ExtendPartition_Start_Message" value="SetupCl has started extending a partition."></string>
+				<string id="ExtendPartition_Stop_Message" value="SetupCl has finished extending a partition."></string>
+				<string id="DeterminedPartitionName_Message" value="SetupCl will extend the following partition: [%1]."></string>
+				<string id="ExecuteUpgHives_Start_Message" value="SetupCl has started executing upgrade hive updates."></string>
+				<string id="ExecuteUpgHives_Stop_Message" value="SetupCl has finished executing upgrade hive updates."></string>
+				<string id="ExecuteRequest_Start_Message" value="SetupCl has started executing request."></string>
+				<string id="ExecuteRequest_Stop_Message" value="SetupCl has finished executing request."></string>
+			</stringTable>
+		</resources>
+	</localization>
+	<cbb:debuggingInfo xmlns:cbb="urn:schemas-microsoft-com:asm.internal.v1">
+		<cbb:sourceManifest sourcePath="%sdxmaproot%\onecore\base\ntsetup\lib\setupcl\src\microsoft-windows-setupcl-instrumentation.man"></cbb:sourceManifest>
+	</cbb:debuggingInfo>
+</assembly>

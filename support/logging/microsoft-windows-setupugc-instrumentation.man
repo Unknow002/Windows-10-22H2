@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<assemblyIdentity buildType="release" language="neutral" name="Microsoft-Windows-SetupUGC-Instrumentation" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" version="10.0.10011.16384" versionScope="nonSxS"></assemblyIdentity>
+	<registryKeys>
+		<!-- SetupUGC Provider -->
+		<registryKey keyName="HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\WMI\AutoLogger\Microsoft-Windows-Setup\{75EBC33E-0870-49e5-BDCE-9D7028279489}">
+			<registryValue name="Enabled" value="1" valueType="REG_DWORD"></registryValue>
+			<registryValue name="EnableLevel" value="4" valueType="REG_DWORD"></registryValue>
+		</registryKey>
+	</registryKeys>
+	<instrumentation xmlns:win="http://manifests.microsoft.com/win/2004/08/windows/events" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+		<events xmlns="http://schemas.microsoft.com/win/2004/08/events" xmlns:auto-ns1="urn:schemas-microsoft-com:asm.v3">
+			<!--
+           * Microsoft Windows SetupUGC Provider *
+           Author: jasontho (Jason Thorsness)
+      -->
+			<provider guid="{75EBC33E-0870-49e5-BDCE-9D7028279489}" message="$(string.SetupUGC.ProviderMessage)" messageFileName="%SystemRoot%\system32\SetupUGC.exe" name="Microsoft-Windows-SetupUGC" resourceFileName="%SystemRoot%\system32\SetupUGC.exe" symbol="Microsoft_Windows_SetupUGC">
+				<channels>
+					<channel chid="chaSetupUGCAnalytic" name="Microsoft-Windows-SetupUGC/Analytic" type="Analytic"></channel>
+					<!-- This is the official Setup channel as seen in the Event Viewer. -->
+					<importChannel chid="chaSetup" name="Setup"></importChannel>
+				</channels>
+				<keywords>
+					<!-- Events with the Performance keyword come in opcode=win:start/win:stop pairs 
+               with the same task name.  An individual thread will complete once instance of
+               a task with a particular type before starting a new one. -->
+					<keyword mask="0x00000001" message="$(string.Performance.KeywordMessage)" name="keyPerformance"></keyword>
+				</keywords>
+				<templates>
+					<template tid="tidCommandLine">
+						<data inType="win:UnicodeString" name="CommandLine"></data>
+					</template>
+					<template tid="tidErrorCodeResult">
+						<data inType="win:UInt32" name="ErrorCode"></data>
+					</template>
+					<template tid="tidRunProcessorsForPass">
+						<data inType="win:UnicodeString" name="Pass"></data>
+					</template>
+					<template tid="tidRunProcessor">
+						<data inType="win:UnicodeString" name="Processor"></data>
+					</template>
+				</templates>
+				<tasks>
+					<task eventGUID="{F1BA38A8-E276-4b7a-BA69-D363A0FB0AB8}" message="$(string.RunSetupUGC.TaskMessage)" name="tskRunSetupUGC" value="1000"></task>
+					<task eventGUID="{2E4F4E87-0F58-417e-B4CD-DF8D7B4B113E}" message="$(string.RunProcessorsForPass.TaskMessage)" name="tskRunProcessorsForPass" value="2000"></task>
+					<task eventGUID="{17C69A28-E08B-4dc2-87A7-8B3F77687AAB}" message="$(string.RunProcessor.TaskMessage)" name="tskRunProcessor" value="3000"></task>
+				</tasks>
+				<events>
+					<!-- Official Setup Channel (Will show up in the Event Viewer) Events -->
+					<!-- SetupUGC Analytic Events -->
+					<!-- SetupUGC Enter/Exit -->
+					<event channel="chaSetupUGCAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.RunSetupUGC.StartMessage)" opcode="win:Start" symbol="RunSetupUGCStart" task="tskRunSetupUGC" template="tidCommandLine" value="1001"></event>
+					<event channel="chaSetupUGCAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.RunSetupUGC.StopMessage)" opcode="win:Stop" symbol="RunSetupUGCStop" task="tskRunSetupUGC" template="tidErrorCodeResult" value="1002"></event>
+					<!-- Run Processors For Pass -->
+					<event channel="chaSetupUGCAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.RunProcessorsForPass.StartMessage)" opcode="win:Start" symbol="RunProcessorsForPassStart" task="tskRunProcessorsForPass" template="tidRunProcessorsForPass" value="2001"></event>
+					<event channel="chaSetupUGCAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.RunProcessorsForPass.StopMessage)" opcode="win:Stop" symbol="RunProcessorsForPassStop" task="tskRunProcessorsForPass" template="tidErrorCodeResult" value="2002"></event>
+					<!-- Run Processor -->
+					<event channel="chaSetupUGCAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.RunProcessor.StartMessage)" opcode="win:Start" symbol="RunProcessorStart" task="tskRunProcessor" template="tidRunProcessor" value="3001"></event>
+					<event channel="chaSetupUGCAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.RunProcessor.StopMessage)" opcode="win:Stop" symbol="RunProcessorStop" task="tskRunProcessor" template="tidErrorCodeResult" value="3002"></event>
+				</events>
+			</provider>
+		</events>
+	</instrumentation>
+	<localization>
+		<resources culture="en-US">
+			<stringTable>
+				<!-- Keywords -->
+				<string id="Performance.KeywordMessage" value="Performance"></string>
+				<!-- Providers -->
+				<string id="SetupUGC.ProviderMessage" value="Microsoft-Windows-SetupUGC"></string>
+				<!-- Run Setup UGC -->
+				<string id="RunSetupUGC.TaskMessage" value="Run SetupUGC"></string>
+				<string id="RunSetupUGC.StartMessage" value="SetupUGC.exe running with command line &quot;%1&quot;."></string>
+				<string id="RunSetupUGC.StopMessage" value="SetupUGC.exe exiting with status %1."></string>
+				<!-- Run Processors For Pass -->
+				<string id="RunProcessorsForPass.TaskMessage" value="Running Processors for Pass"></string>
+				<string id="RunProcessorsForPass.StartMessage" value="Running Processors for pass &quot;%1&quot;."></string>
+				<string id="RunProcessorsForPass.StopMessage" value="Finished running processors for pass with status %1."></string>
+				<!-- Run Processor -->
+				<string id="RunProcessor.TaskMessage" value="Running Processor"></string>
+				<string id="RunProcessor.StartMessage" value="Running Processor &quot;%1&quot;."></string>
+				<string id="RunProcessor.StopMessage" value="Finished running processor with status %1."></string>
+			</stringTable>
+		</resources>
+	</localization>
+	<cbb:debuggingInfo xmlns:cbb="urn:schemas-microsoft-com:asm.internal.v1">
+		<cbb:sourceManifest sourcePath="%sdxmaproot%\onecore\base\ntsetup\unattend\gc\microsoft-windows-setupugc-instrumentation.man"></cbb:sourceManifest>
+	</cbb:debuggingInfo>
+</assembly>

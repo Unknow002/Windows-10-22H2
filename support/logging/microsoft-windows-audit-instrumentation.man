@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<assemblyIdentity buildType="release" language="neutral" name="Microsoft-Windows-Audit-Instrumentation" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" version="10.0.10011.16384" versionScope="nonSxS"></assemblyIdentity>
+	<registryKeys>
+		<!-- Audit Provider -->
+		<registryKey keyName="HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\WMI\AutoLogger\Microsoft-Windows-Setup\{75EBC33E-0936-4a55-9D26-5F298F3180BF}">
+			<registryValue name="Enabled" value="1" valueType="REG_DWORD"></registryValue>
+			<registryValue name="EnableLevel" value="4" valueType="REG_DWORD"></registryValue>
+		</registryKey>
+	</registryKeys>
+	<instrumentation xmlns:win="http://manifests.microsoft.com/win/2004/08/windows/events" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+		<events xmlns="http://schemas.microsoft.com/win/2004/08/events" xmlns:auto-ns1="urn:schemas-microsoft-com:asm.v3">
+			<!--
+           * Microsoft Windows Audit Provider *
+           Implemented in Audit.exe
+      -->
+			<provider guid="{75EBC33E-0936-4a55-9D26-5F298F3180BF}" message="$(string.Audit.ProviderMessage)" messageFileName="%SystemRoot%\system32\oobe\audit.exe" name="Microsoft-Windows-Audit" resourceFileName="%SystemRoot%\system32\oobe\audit.exe" symbol="Microsoft_Windows_Audit">
+				<channels>
+					<channel chid="chaAuditAnalytic" name="Microsoft-Windows-Audit/Analytic" type="Analytic"></channel>
+					<!-- This is the official Setup channel as seen in the Event Viewer. -->
+					<importChannel chid="chaSetup" name="Setup"></importChannel>
+				</channels>
+				<keywords>
+					<!-- Events with the Performance keyword come in opcode=win:start/win:stop pairs 
+               with the same task name.  An individual thread will complete one instance of
+               a task with a particular type before starting a new one. -->
+					<keyword mask="0x00000001" message="$(string.Performance.KeywordMessage)" name="keyPerformance"></keyword>
+					<keyword mask="0x00000002" message="$(string.Diagnostic.KeywordMessage)" name="keyDiagnostic"></keyword>
+				</keywords>
+				<templates>
+					<template tid="tidCommandLine">
+						<data inType="win:UnicodeString" name="CommandLine"></data>
+					</template>
+					<template tid="tidErrorCodeResult">
+						<data inType="win:UInt32" name="ErrorCode"></data>
+					</template>
+					<template tid="tidAuditProcessUnattend">
+						<data inType="win:UnicodeString" name="Pass"></data>
+					</template>
+					<template tid="tidAuditUsingUnattend">
+						<data inType="win:UnicodeString" name="Pass"></data>
+						<data inType="win:UnicodeString" name="FilePath"></data>
+					</template>
+				</templates>
+				<tasks>
+					<task eventGUID="{7415972C-BA13-425f-B15B-FC2F9EC9F886}" message="$(string.RunAudit.TaskMessage)" name="tskRunAudit" value="1000"></task>
+					<task eventGUID="{38BB09CA-D270-4fc5-A125-D692C5F33D90}" message="$(string.AuditProcessUnattend.TaskMessage)" name="tskAuditProcessUnattend" value="2000"></task>
+				</tasks>
+				<events>
+					<!-- Official Setup Channel (Will show up in the Event Viewer) Events -->
+					<!-- Audit Analytic Events -->
+					<!-- Run Audit -->
+					<event channel="chaAuditAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.RunAudit.StartMessage)" opcode="win:Start" symbol="RunAuditStart" task="tskRunAudit" template="tidCommandLine" value="1001"></event>
+					<event channel="chaAuditAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.RunAudit.StopMessage)" opcode="win:Stop" symbol="RunAuditStop" task="tskRunAudit" template="tidErrorCodeResult" value="1002"></event>
+					<!-- Audit Process Unattend -->
+					<event channel="chaAuditAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.AuditProcessUnattend.StartMessage)" opcode="win:Start" symbol="AuditProcessUnattendStart" task="tskAuditProcessUnattend" template="tidAuditProcessUnattend" value="2001"></event>
+					<event channel="chaAuditAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.AuditProcessUnattend.StopMessageExecuted)" opcode="win:Stop" symbol="AuditProcessUnattendStopExecuted" task="tskAuditProcessUnattend" template="tidErrorCodeResult" value="2002"></event>
+					<event channel="chaAuditAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.AuditProcessUnattend.StopMessageFailedToExecute)" opcode="win:Stop" symbol="AuditProcessUnattendStopFailedToExecute" task="tskAuditProcessUnattend" template="tidErrorCodeResult" value="2003"></event>
+					<event channel="chaAuditAnalytic" keywords="keyDiagnostic" level="win:Informational" message="$(string.AuditProcessUnattend.UsingFile)" opcode="win:Info" symbol="AuditProcessUnattendUsingFile" task="tskAuditProcessUnattend" template="tidAuditUsingUnattend" value="2004"></event>
+				</events>
+			</provider>
+		</events>
+	</instrumentation>
+	<localization>
+		<resources culture="en-US">
+			<stringTable>
+				<!-- Keywords -->
+				<string id="Performance.KeywordMessage" value="Performance"></string>
+				<string id="Diagnostic.KeywordMessage" value="Diagnostic"></string>
+				<!-- Providers -->
+				<string id="Audit.ProviderMessage" value="Microsoft-Windows-Audit"></string>
+				<!-- Run Audit -->
+				<string id="RunAudit.TaskMessage" value="Run Audit"></string>
+				<string id="RunAudit.StartMessage" value="Audit.exe launched with command line &quot;%1&quot;."></string>
+				<string id="RunAudit.StopMessage" value="Audit.exe exiting with status %1."></string>
+				<!-- Audit Process Unattend -->
+				<string id="AuditProcessUnattend.TaskMessage" value="Audit Process Unattend"></string>
+				<string id="AuditProcessUnattend.StartMessage" value="Executing unattend settings pass &quot;%1&quot;."></string>
+				<string id="AuditProcessUnattend.StopMessageExecuted" value="Finished executing unattend pass with status %1."></string>
+				<string id="AuditProcessUnattend.StopMessageFailedToExecute" value="Failed to execute unattend pass with status %1."></string>
+				<string id="AuditProcessUnattend.UsingFile" value="Using unattend file &quot;%2&quot; for pass &quot;%1&quot;."></string>
+			</stringTable>
+		</resources>
+	</localization>
+	<cbb:debuggingInfo xmlns:cbb="urn:schemas-microsoft-com:asm.internal.v1">
+		<cbb:sourceManifest sourcePath="%sdxmaproot%\base\ntsetup\opktools\audit\src\microsoft-windows-audit-instrumentation.man"></cbb:sourceManifest>
+	</cbb:debuggingInfo>
+</assembly>

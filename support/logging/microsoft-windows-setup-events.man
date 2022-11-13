@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<assemblyIdentity buildType="release" language="neutral" name="Microsoft-Windows-Setup-Events" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" version="10.0.10011.16384" versionScope="nonSxS"></assemblyIdentity>
+	<file destinationPath="$(runtime.system32)\" importPath="$(build.nttree)\" name="setupetw.dll" sourceName="setupetw.dll" sourcePath=".\"></file>
+	<registryKeys>
+		<!-- Deplorch Provider -->
+		<registryKey keyName="HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\WMI\AutoLogger\Microsoft-Windows-Setup\{B9DA9FE6-AE5F-4f3e-B2FA-8E623C11DC75}">
+			<registryValue name="Enabled" value="1" valueType="REG_DWORD"></registryValue>
+			<registryValue name="EnableLevel" value="4" valueType="REG_DWORD"></registryValue>
+		</registryKey>
+		<!-- SetupQueue Provider -->
+		<registryKey keyName="HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\WMI\AutoLogger\Microsoft-Windows-Setup\{A615ACB9-D5A4-4738-B561-1DF301D207F8}">
+			<registryValue name="Enabled" value="1" valueType="REG_DWORD"></registryValue>
+			<registryValue name="EnableLevel" value="4" valueType="REG_DWORD"></registryValue>
+		</registryKey>
+	</registryKeys>
+	<instrumentation xmlns:win="http://manifests.microsoft.com/win/2004/08/windows/events" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+		<events xmlns="http://schemas.microsoft.com/win/2004/08/events" xmlns:auto-ns1="urn:schemas-microsoft-com:asm.v3">
+			<!--
+           * Microsoft Windows Deplorch Provider *
+           Author: jasontho (Jason Thorsness)
+      -->
+			<provider guid="{B9DA9FE6-AE5F-4f3e-B2FA-8E623C11DC75}" message="$(string.Deplorch.ProviderMessage)" messageFileName="%SystemRoot%\system32\setupetw.dll" name="Microsoft-Windows-Deplorch" resourceFileName="%SystemRoot%\system32\setupetw.dll" symbol="Microsoft_Windows_Deplorch">
+				<channels>
+					<channel chid="chaDeplorchAnalytic" name="Microsoft-Windows-Deplorch/Analytic" type="Analytic"></channel>
+					<!-- This is the official Setup channel as seen in the Event Viewer. -->
+					<importChannel chid="chaSetup" name="Setup"></importChannel>
+				</channels>
+				<keywords>
+					<!-- Events with the Performance keyword come in opcode=win:start/win:stop pairs 
+               with the same task name.  An individual thread will complete once instance of
+               a task with a particular type before starting a new one. -->
+					<keyword mask="0x00000001" message="$(string.Performance.KeywordMessage)" name="keyPerformance"></keyword>
+				</keywords>
+				<templates>
+					<template tid="tidErrorCodeResult">
+						<data inType="win:UInt32" name="ErrorCode"></data>
+					</template>
+					<template tid="tidCommandLine">
+						<data inType="win:UnicodeString" name="CommandLine"></data>
+					</template>
+				</templates>
+				<tasks>
+					<task eventGUID="{0D12CC84-14BA-4c48-9C41-00C4FE15566E}" message="$(string.StartSystemServices.TaskMessage)" name="tskStartSystemServices" value="1000"></task>
+				</tasks>
+				<events>
+					<!-- Official Setup Channel (Will show up in the Event Viewer) Events -->
+					<!-- Deplorch Analytic Events -->
+					<!-- Deplorch Enter/Exit -->
+					<event channel="chaDeplorchAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.StartSystemServices.StartMessage)" opcode="win:Start" symbol="StartSystemServicesStart" task="tskStartSystemServices" value="1001"></event>
+					<event channel="chaDeplorchAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.StartSystemServices.StopMessage)" opcode="win:Stop" symbol="StartSystemServicesStop" task="tskStartSystemServices" template="tidErrorCodeResult" value="1002"></event>
+				</events>
+			</provider>
+			<!--
+           * Microsoft Windows SetupQueue Provider *
+           Author: jasontho (Jason Thorsness)
+      -->
+			<provider guid="{A615ACB9-D5A4-4738-B561-1DF301D207F8}" message="$(string.SetupQueue.ProviderMessage)" messageFileName="%SystemRoot%\system32\setupetw.dll" name="Microsoft-Windows-SetupQueue" resourceFileName="%SystemRoot%\system32\setupetw.dll" symbol="Microsoft_Windows_SetupQueue">
+				<channels>
+					<channel chid="chaSetupQueueAnalytic" name="Microsoft-Windows-SetupQueue/Analytic" type="Analytic"></channel>
+					<!-- This is the official Setup channel as seen in the Event Viewer. -->
+					<importChannel chid="chaSetup" name="Setup"></importChannel>
+				</channels>
+				<keywords>
+					<!-- Events with the Performance keyword come in opcode=win:start/win:stop pairs 
+               with the same task name.  An individual thread will complete once instance of
+               a task with a particular type before starting a new one. -->
+					<keyword mask="0x00000001" message="$(string.Performance.KeywordMessage)" name="keyPerformance"></keyword>
+				</keywords>
+				<templates>
+					<template tid="tidCommand">
+						<data inType="win:UnicodeString" name="Command"></data>
+					</template>
+					<template tid="tidErrorCodeResult">
+						<data inType="win:UInt32" name="ErrorCode"></data>
+					</template>
+				</templates>
+				<tasks>
+					<task eventGUID="{DF4FB88E-6DF8-4aef-8D0C-041325F973DF}" message="$(string.CommandExecQueueRun.TaskMessage)" name="tskCommandExecQueueRun" value="1000"></task>
+				</tasks>
+				<events>
+					<!-- Official Setup Channel (Will show up in the Event Viewer) Events -->
+					<!-- SetupQueue Analytic Events -->
+					<!-- SetupQueue Enter/Exit -->
+					<event channel="chaSetupQueueAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.CommandExecQueueRun.StartMessage)" opcode="win:Start" symbol="CommandExecQueueRunStart" task="tskCommandExecQueueRun" template="tidCommand" value="1001"></event>
+					<event channel="chaSetupQueueAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.CommandExecQueueRun.StopMessage.Executed)" opcode="win:Stop" symbol="CommandExecQueueRunStopExecuted" task="tskCommandExecQueueRun" template="tidErrorCodeResult" value="1002"></event>
+					<event channel="chaSetupQueueAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.CommandExecQueueRun.StopMessage.FailedToExecute)" opcode="win:Stop" symbol="CommandExecQueueRunStopFailedToExecute" task="tskCommandExecQueueRun" template="tidErrorCodeResult" value="1003"></event>
+				</events>
+			</provider>
+			<!--
+           * Microsoft Windows Setup Platform Provider *
+           Author: xhou (Xiaohui Hou)
+      -->
+			<provider guid="{530FB9B9-C515-4472-9313-FB346F9255E3}" message="$(string.SetupPlatform.ProviderMessage)" messageFileName="%SystemRoot%\system32\setupetw.dll" name="Microsoft-Windows-SetupPlatform" resourceFileName="%SystemRoot%\system32\setupetw.dll" symbol="Microsoft_Windows_SetupPlatform">
+				<channels>
+					<channel chid="chaSetupPlatformAnalytic" name="Microsoft-Windows-SetupPlatform/Analytic" type="Analytic"></channel>
+					<!-- This is the official Setup channel as seen in the Event Viewer. -->
+					<importChannel chid="chaSetup" name="Setup"></importChannel>
+					<importChannel chid="System" name="System"></importChannel>
+				</channels>
+				<keywords>
+					<!-- Events with the Performance keyword come in opcode=win:start/win:stop pairs 
+               with the same task name.  An individual thread will complete once instance of
+               a task with a particular type before starting a new one. -->
+					<keyword mask="0x00000001" message="$(string.Performance.KeywordMessage)" name="keyPerformance"></keyword>
+				</keywords>
+				<templates>
+					<template tid="tidOperation">
+						<data inType="win:UnicodeString" name="Operation"></data>
+						<data inType="win:UInt32" name="ErrorCode"></data>
+					</template>
+					<template tid="tidOnlineGather">
+						<data inType="win:UnicodeString" name="OfflineWinDir"></data>
+						<data inType="win:UInt32" name="MachineSpecific"></data>
+					</template>
+					<template tid="tidSetupInformation">
+						<data inType="win:UInt32" name="Installation choice"></data>
+						<data inType="win:UInt32" name="Host OS Major version"></data>
+						<data inType="win:UInt32" name="Host OS Minor version"></data>
+						<data inType="win:UInt32" name="Host OS Build number"></data>
+						<data inType="win:UInt32" name="Host OS Service pack major number"></data>
+						<data inType="win:UInt32" name="Host OS Service pack minor number"></data>
+					</template>
+				</templates>
+				<tasks>
+					<task eventGUID="{3EEC6A5B-EFA7-485F-ADDE-7F213B6949A6}" message="$(string.OperationRun.TaskMessage)" name="OperationRun" value="1000"></task>
+					<task eventGUID="{C864E0EB-D617-49D4-BEBD-BEEFD7404D92}" message="$(string.OnlineGather.TaskMessage)" name="OnlineGatherRun" value="1001"></task>
+					<task eventGUID="{C7357B22-F641-4E37-BAF5-3E93C147400F}" message="$(string.OfflineGather.TaskMessage)" name="OfflineGatherRun" value="1002"></task>
+					<task eventGUID="{B4D65F05-5C4E-4A39-84D8-B774B586124F}" message="$(string.TaskInstallWindows.TaskMessage)" name="InstallWindows" value="1003"></task>
+				</tasks>
+				<events>
+					<!-- Official Setup Channel (Will show up in the Event Viewer) Events -->
+					<!-- SetupPlatform Analytic Events -->
+					<!-- SetupPlatform Enter/Exit -->
+					<event channel="chaSetupPlatformAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.OperationRun.StartMessage)" opcode="win:Start" symbol="OperationRunStart" task="OperationRun" template="tidOperation" value="1001"></event>
+					<event channel="chaSetupPlatformAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.OperationRun.StopMessage)" opcode="win:Stop" symbol="OperationRunStop" task="OperationRun" template="tidOperation" value="1002"></event>
+					<event channel="chaSetupPlatformAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.OnlineGatherRun.StartMessage)" opcode="win:Start" symbol="OnlineGatherRunStart" task="OnlineGatherRun" template="tidOnlineGather" value="1003"></event>
+					<event channel="chaSetupPlatformAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.OnlineGatherRun.StopMessage)" opcode="win:Stop" symbol="OnlineGatherRunStop" task="OnlineGatherRun" template="tidOnlineGather" value="1004"></event>
+					<event channel="chaSetupPlatformAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.OfflineGatherRun.StartMessage)" opcode="win:Start" symbol="OfflineGatherRunStart" task="OfflineGatherRun" value="1005"></event>
+					<event channel="chaSetupPlatformAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.OfflineGatherRun.StopMessage)" opcode="win:Stop" symbol="OfflineGatherRunStop" task="OfflineGatherRun" value="1006"></event>
+					<!-- NOTE: please do not change value 2005 which is monitored by partner teams 
+              and should be the same across Windows versions.-->
+					<event channel="System" level="win:Informational" message="$(string.EventSetupInformation.Message)" opcode="win:Info" symbol="EventSetupInformation" task="InstallWindows" template="tidSetupInformation" value="2005"></event>
+				</events>
+			</provider>
+			<!--
+           * Microsoft OneCore Setup Provider *
+           Author: ponagpal (Pooja Nagpal)
+      -->
+			<provider guid="{41862974-DA3B-4F0B-97D5-BB29FBB9B71E}" message="$(string.OneCoreSetup.ProviderMessage)" messageFileName="%SystemRoot%\system32\setupetw.dll" name="Microsoft-OneCore-OnlineSetup" resourceFileName="%SystemRoot%\system32\setupetw.dll" symbol="Microsoft_OneCore_OnlineSetup">
+				<channels>
+					<channel chid="chaOneCoreSetupAnalytic" name="Microsoft-OneCore-Setup/Analytic" type="Analytic"></channel>
+					<!-- This is the official Setup channel as seen in the Event Viewer. -->
+					<importChannel chid="chaSetup" name="Setup"></importChannel>
+				</channels>
+				<keywords>
+					<!-- Events with the Performance keyword come in opcode=win:start/win:stop pairs 
+               with the same task name.  An individual thread will complete once instance of
+               a task with a particular type before starting a new one. -->
+					<keyword mask="0x00000001" message="$(string.Performance.KeywordMessage)" name="keyPerformance"></keyword>
+					<keyword mask="0x00000002" message="$(string.Diagnostic.KeywordMessage)" name="keyDiagnostic"></keyword>
+				</keywords>
+				<templates>
+					<template tid="tidCommandLine">
+						<data inType="win:UnicodeString" name="CommandLine"></data>
+					</template>
+					<template tid="tidErrorCodeResult">
+						<data inType="win:UInt32" name="ErrorCode"></data>
+					</template>
+					<template tid="tidOneCoreSetupProcessUnattend">
+						<data inType="win:UnicodeString" name="Pass"></data>
+					</template>
+					<template tid="tidOneCoreSetupUsingUnattend">
+						<data inType="win:UnicodeString" name="Pass"></data>
+						<data inType="win:UnicodeString" name="FilePath"></data>
+					</template>
+				</templates>
+				<tasks>
+					<task eventGUID="{49616AEE-29A5-4D6B-806E-CEC2629F31BC}" message="$(string.RunOneCoreSetup.TaskMessage)" name="tskRunOneCoreSetup" value="1000"></task>
+					<task eventGUID="{635BA866-36A3-464C-B06D-FEB76AF08F26}" message="$(string.OneCoreSetupProcessUnattend.TaskMessage)" name="tskOneCoreSetupProcessUnattend" value="2000"></task>
+				</tasks>
+				<events>
+					<!-- Official Setup Channel (Will show up in the Event Viewer) Events -->
+					<!-- OneCore setup Analytic Events -->
+					<!-- OneCore setup Enter/Exit -->
+					<event channel="chaOneCoreSetupAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.RunOneCoreSetup.StartMessage)" opcode="win:Start" symbol="RunOneCoreSetupStart" task="tskRunOneCoreSetup" template="tidCommandLine" value="1001"></event>
+					<event channel="chaOneCoreSetupAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.RunOneCoreSetup.StopMessage)" opcode="win:Stop" symbol="RunOneCoreSetupStop" task="tskRunOneCoreSetup" template="tidErrorCodeResult" value="1002"></event>
+					<!-- OneCore Setup Process Unattend -->
+					<event channel="chaOneCoreSetupAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.OneCoreSetupProcessUnattend.StartMessage)" opcode="win:Start" symbol="OneCoreSetupProcessUnattendStart" task="tskOneCoreSetupProcessUnattend" template="tidOneCoreSetupProcessUnattend" value="2001"></event>
+					<event channel="chaOneCoreSetupAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.OneCoreSetupProcessUnattend.StopMessageExecuted)" opcode="win:Stop" symbol="OneCoreSetupProcessUnattendStopExecuted" task="tskOneCoreSetupProcessUnattend" template="tidErrorCodeResult" value="2002"></event>
+					<event channel="chaOneCoreSetupAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.OneCoreSetupProcessUnattend.StopMessageFailedToExecute)" opcode="win:Stop" symbol="OneCoreSetupProcessUnattendStopFailedToExecute" task="tskOneCoreSetupProcessUnattend" template="tidErrorCodeResult" value="2003"></event>
+					<event channel="chaOneCoreSetupAnalytic" keywords="keyDiagnostic" level="win:Informational" message="$(string.OneCoreSetupProcessUnattend.UsingFile)" opcode="win:Info" symbol="OneCoreSetupProcessUnattendUsingFile" task="tskOneCoreSetupProcessUnattend" template="tidOneCoreSetupUsingUnattend" value="2004"></event>
+				</events>
+			</provider>
+		</events>
+	</instrumentation>
+	<localization>
+		<resources culture="en-US">
+			<stringTable>
+				<!-- Keywords -->
+				<string id="Performance.KeywordMessage" value="Performance"></string>
+				<string id="Diagnostic.KeywordMessage" value="Diagnostic"></string>
+				<!-- Providers -->
+				<string id="Deplorch.ProviderMessage" value="Microsoft-Windows-Deplorch"></string>
+				<string id="SetupQueue.ProviderMessage" value="Microsoft-Windows-SetupQueue"></string>
+				<string id="SetupPlatform.ProviderMessage" value="Microsoft-Windows-SetupPlatform"></string>
+				<string id="OneCoreSetup.ProviderMessage" value="Microsoft-OneCore-OnlineSetup"></string>
+				<!-- Deplorch -->
+				<!-- StartSystemServices -->
+				<string id="StartSystemServices.TaskMessage" value="Start System Services"></string>
+				<string id="StartSystemServices.StartMessage" value="Starting system services."></string>
+				<string id="StartSystemServices.StopMessage" value="Finished starting system services with status %1."></string>
+				<!-- SetupQueue -->
+				<!-- CommandExecQueueRun -->
+				<string id="CommandExecQueueRun.TaskMessage" value="Execute command queue entry"></string>
+				<string id="CommandExecQueueRun.StartMessage" value="Executing command queue entry &quot;%1&quot;."></string>
+				<string id="CommandExecQueueRun.StopMessage.Executed" value="Command queue entry exited with status %1."></string>
+				<string id="CommandExecQueueRun.StopMessage.FailedToExecute" value="Failed to launch command queue entry with status %1."></string>
+				<!-- SetupPlatform -->
+				<string id="OperationRun.TaskMessage" value="Run operation"></string>
+				<string id="OperationRun.StartMessage" value="Start operation: %1, %2"></string>
+				<string id="OperationRun.StopMessage" value="Stop operation: %1, %2"></string>
+				<string id="OnlineGather.TaskMessage" value="Online gather"></string>
+				<string id="OnlineGatherRun.StartMessage" value="Online gather starts: %1, %2"></string>
+				<string id="OnlineGatherRun.StopMessage" value="Online gather stops: %1, %2"></string>
+				<string id="OfflineGather.TaskMessage" value="Offline gather"></string>
+				<string id="OfflineGatherRun.StartMessage" value="Offline gather starts"></string>
+				<string id="OfflineGatherRun.StopMessage" value="Offline gather stops"></string>
+				<string id="TaskInstallWindows.TaskMessage" value="Install Windows Task"></string>
+				<string id="EventSetupInformation.Message" value="New Setup information"></string>
+				<!-- RunOneCoreSetup -->
+				<string id="RunOneCoreSetup.TaskMessage" value="Run Setup Specialization"></string>
+				<string id="RunOneCoreSetup.StartMessage" value="Setup.exe is running with command line &quot;%1&quot;."></string>
+				<string id="RunOneCoreSetup.StopMessage" value="Setup.exe exiting with status %1."></string>
+				<!-- OneCore Setup Process Unattend -->
+				<string id="OneCoreSetupProcessUnattend.TaskMessage" value="Setup Process Unattend"></string>
+				<string id="OneCoreSetupProcessUnattend.StartMessage" value="Executing unattend settings pass &quot;%1&quot;."></string>
+				<string id="OneCoreSetupProcessUnattend.StopMessageExecuted" value="Finished executing unattend pass with status %1."></string>
+				<string id="OneCoreSetupProcessUnattend.StopMessageFailedToExecute" value="Failed to execute unattend pass with status %1."></string>
+				<string id="OneCoreSetupProcessUnattend.UsingFile" value="Using unattend file &quot;%2&quot; for pass &quot;%1&quot;."></string>
+			</stringTable>
+		</resources>
+	</localization>
+	<cbb:debuggingInfo xmlns:cbb="urn:schemas-microsoft-com:asm.internal.v1">
+		<cbb:sourceManifest sourcePath="%sdxmaproot%\onecore\base\ntsetup\etw\microsoft-windows-setup-events.man"></cbb:sourceManifest>
+	</cbb:debuggingInfo>
+</assembly>

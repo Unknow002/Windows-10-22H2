@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<assemblyIdentity buildType="release" language="neutral" name="Microsoft-Windows-Setup-Instrumentation" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" version="10.0.10011.16384" versionScope="nonSxS"></assemblyIdentity>
+	<registryKeys>
+		<!-- Main Setup.exe Provider -->
+		<registryKey keyName="HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\WMI\AutoLogger\Microsoft-Windows-Setup\{75EBC33E-997F-49cf-B49F-ECC50184B75D}">
+			<registryValue name="Enabled" value="1" valueType="REG_DWORD"></registryValue>
+			<registryValue name="EnableLevel" value="4" valueType="REG_DWORD"></registryValue>
+		</registryKey>
+		<registryKey keyName="HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\WMI\AutoLogger\SetupPlatform\{75EBC33E-997F-49cf-B49F-ECC50184B75D}">
+			<registryValue name="Enabled" value="1" valueType="REG_DWORD"></registryValue>
+			<registryValue name="EnableLevel" value="4" valueType="REG_DWORD"></registryValue>
+		</registryKey>
+	</registryKeys>
+	<instrumentation xmlns:ms="http://manifests.microsoft.com/win/2004/08/windows/events" xmlns:win="http://manifests.microsoft.com/win/2004/08/windows/events" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+		<events xmlns="http://schemas.microsoft.com/win/2004/08/events" xmlns:auto-ns1="urn:schemas-microsoft-com:asm.v3">
+			<!--
+           * Microsoft Windows Setup Provider *
+           Author: jasontho (Jason Thorsness)
+      -->
+			<provider guid="{75EBC33E-997F-49cf-B49F-ECC50184B75D}" message="$(string.Setup.ProviderMessage)" messageFileName="%SystemRoot%\system32\oobe\winsetup.dll" name="Microsoft-Windows-Setup" resourceFileName="%SystemRoot%\system32\oobe\winsetup.dll" symbol="Microsoft_Windows_Setup">
+				<channels>
+					<channel chid="chaSetupAnalytic" name="Microsoft-Windows-Setup/Analytic" type="Analytic"></channel>
+					<!-- This is the official Setup channel as seen in the Event Viewer.  
+               This channel can only be used in the First Boot phase. -->
+					<importChannel chid="chaSetup" name="Setup"></importChannel>
+					<!-- This is the official System channel as seen in the Event Viewer.  
+               This channel is only for retails installs and can only viewed after Setup is complete -->
+					<importChannel chid="System" name="System"></importChannel>
+				</channels>
+				<keywords>
+					<!-- Events with the Performance keyword come in opcode=win:start/win:stop pairs 
+               with the same task name.  An individual thread will complete once instance of
+               a task with a particular type before starting a new one. -->
+					<keyword mask="0x00000001" message="$(string.Performance.KeywordMessage)" name="keyPerformance"></keyword>
+					<!-- Sysprep -->
+					<keyword mask="0x00000002" message="$(string.Sysprep.KeywordMessage)" name="keySysprep"></keyword>
+					<!-- EVENTS_INCLUDE_MICROSOFT_TELEMETRY -->
+					<keyword mask="0x0000800000000000" name="ms:CriticalData"></keyword>
+					<keyword mask="0x0000400000000000" name="ms:Measures"></keyword>
+					<keyword mask="0x0000200000000000" name="ms:Telemetry"></keyword>
+					<keyword mask="0x0000100000000000" name="ms:ReservedKeyword44"></keyword>
+				</keywords>
+				<templates>
+					<template tid="tidErrorCodeResult">
+						<data inType="win:UInt32" name="ErrorCode"></data>
+					</template>
+					<template tid="tidExecuteSetupPhase">
+						<data inType="win:UInt32" name="SetupPhase"></data>
+					</template>
+					<template tid="tidSetupInformation">
+						<data inType="win:UnicodeString" name="HostOSName"></data>
+						<data inType="win:Boolean" name="Installwasanupgrade"></data>
+						<data inType="win:Boolean" name="HostOSwasWindowsPE"></data>
+						<data inType="win:UInt32" name="HostOSmajorversion"></data>
+						<data inType="win:UInt32" name="HostOSminorversion"></data>
+						<data inType="win:UInt32" name="HostOSbuildversion"></data>
+						<data inType="win:UnicodeString" name="HostOSservicepackName"></data>
+						<data inType="win:UInt32" name="HostOSservicepackmajorversion"></data>
+						<data inType="win:UInt32" name="HostOSservicepackminorversion"></data>
+					</template>
+					<template tid="tidNewOSInfo">
+						<data inType="win:UnicodeString" name="OSName"></data>
+						<data inType="win:UnicodeString" name="OSEditionID"></data>
+						<data inType="win:UInt32" name="OSmajorversion"></data>
+						<data inType="win:UInt32" name="OSminorversion"></data>
+						<data inType="win:UInt32" name="OSbuildversion"></data>
+						<data inType="win:UnicodeString" name="OSservicepackName"></data>
+						<data inType="win:UInt32" name="OSservicepackmajorversion"></data>
+						<data inType="win:UInt32" name="OSservicepackminorversion"></data>
+					</template>
+				</templates>
+				<tasks>
+					<task eventGUID="{CF341B19-266A-42ac-9411-D6E0F30DCFEF}" message="$(string.ExecuteSetupPhase.TaskMessage)" name="tskExecuteSetupPhase" value="1000"></task>
+					<task eventGUID="{233039AA-2636-4169-A85C-8CFF4F6504D5}" message="$(string.SysprepSpecialize.TaskMessage)" name="tskSysprepSpecialize" value="2000"></task>
+					<task eventGUID="{5A15AC82-E980-4882-BF1C-4AB0A7BF5937}" message="$(string.SetupInfo.TaskMessage)" name="tskSetupInformation" value="3000"></task>
+					<task eventGUID="{987C151C-6718-4DB6-945E-9F03369D6AC7}" message="$(string.NewOS.TaskMessage)" name="tskNewOSInformation" value="4000"></task>
+				</tasks>
+				<events>
+					<!-- Official Setup Channel (Will show up in the Event Viewer) Events -->
+					<!-- Setup Analytic Events -->
+					<!-- ExecuteSetupPhase -->
+					<event channel="chaSetupAnalytic" keywords="keyPerformance ms:Measures" level="win:Informational" message="$(string.ExecuteSetupPhase.StartMessage)" opcode="win:Start" symbol="ExecuteSetupPhaseStart" task="tskExecuteSetupPhase" template="tidExecuteSetupPhase" value="1001"></event>
+					<event channel="chaSetupAnalytic" keywords="keyPerformance ms:Measures" level="win:Informational" message="$(string.ExecuteSetupPhase.StopMessage)" opcode="win:Stop" symbol="ExecuteSetupPhaseStop" task="tskExecuteSetupPhase" template="tidErrorCodeResult" value="1002"></event>
+					<!-- Sysprep Specialize -->
+					<event channel="chaSetupAnalytic" keywords="keyPerformance keySysprep ms:Measures" level="win:Informational" message="$(string.SysprepSpecialize.StartMessage)" opcode="win:Start" symbol="SysprepSpecializeStart" task="tskSysprepSpecialize" value="2001"></event>
+					<event channel="chaSetupAnalytic" keywords="keyPerformance keySysprep ms:Measures" level="win:Informational" message="$(string.SysprepSpecialize.StopMessage)" opcode="win:Stop" symbol="SysprepSpecializeStop" task="tskSysprepSpecialize" template="tidErrorCodeResult" value="2002"></event>
+					<event channel="System" keywords="ms:CriticalData" level="win:Informational" message="$(string.SetupInfo.EventMessage)" opcode="win:Info" symbol="SetupInformation" task="tskSetupInformation" template="tidSetupInformation" value="2003"></event>
+					<event channel="System" keywords="ms:Measures" level="win:Informational" message="$(string.NewOS.EventMessage)" opcode="win:Info" symbol="NewOSInformation" task="tskNewOSInformation" template="tidNewOSInfo" value="2004"></event>
+				</events>
+			</provider>
+		</events>
+	</instrumentation>
+	<localization>
+		<resources culture="en-US">
+			<stringTable>
+				<!-- Keywords -->
+				<string id="Performance.KeywordMessage" value="Performance"></string>
+				<string id="Sysprep.KeywordMessage" value="Sysprep"></string>
+				<!-- Providers -->
+				<string id="Setup.ProviderMessage" value="Microsoft-Windows-Setup"></string>
+				<!-- ExecuteSetupPhase -->
+				<string id="ExecuteSetupPhase.TaskMessage" value="Execute Setup Phase"></string>
+				<string id="ExecuteSetupPhase.StartMessage" value="Setup phase %1 started."></string>
+				<string id="ExecuteSetupPhase.StopMessage" value="Setup phase completed with status %1."></string>
+				<!-- Sysprep Specialize -->
+				<string id="SysprepSpecialize.TaskMessage" value="Sysprep Specialize"></string>
+				<string id="SysprepSpecialize.StartMessage" value="Sysprep specialize started."></string>
+				<string id="SysprepSpecialize.StopMessage" value="Sysprep specialize completed with status %1."></string>
+				<!-- Setup information dump to Event viewer -->
+				<string id="SetupInfo.TaskMessage" value="Setup information"></string>
+				<string id="SetupInfo.EventMessage" value="Successfully logged Setup information"></string>
+				<string id="NewOS.TaskMessage" value="OS information"></string>
+				<string id="NewOS.EventMessage" value="Successfully logged OS information"></string>
+			</stringTable>
+		</resources>
+	</localization>
+	<cbb:debuggingInfo xmlns:cbb="urn:schemas-microsoft-com:asm.internal.v1">
+		<cbb:sourceManifest sourcePath="%sdxmaproot%\base\ntsetup\setup\dll\src\microsoft-windows-setup-instrumentation.man"></cbb:sourceManifest>
+	</cbb:debuggingInfo>
+</assembly>

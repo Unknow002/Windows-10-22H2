@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<assemblyIdentity buildType="release" language="neutral" name="Microsoft-Windows-Windeploy-Instrumentation" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" version="10.0.10011.16384" versionScope="nonSxS"></assemblyIdentity>
+	<registryKeys>
+		<!-- Windeploy Provider -->
+		<registryKey keyName="HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\WMI\AutoLogger\Microsoft-Windows-Setup\{75EBC33E-C8AE-4f93-9CA1-683A53E20CB6}">
+			<registryValue name="Enabled" value="1" valueType="REG_DWORD"></registryValue>
+			<registryValue name="EnableLevel" value="4" valueType="REG_DWORD"></registryValue>
+		</registryKey>
+		<registryKey keyName="HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\WMI\AutoLogger\SetupPlatform\{75EBC33E-C8AE-4f93-9CA1-683A53E20CB6}">
+			<registryValue name="Enabled" value="1" valueType="REG_DWORD"></registryValue>
+			<registryValue name="EnableLevel" value="4" valueType="REG_DWORD"></registryValue>
+		</registryKey>
+	</registryKeys>
+	<instrumentation xmlns:ms="http://manifests.microsoft.com/win/2004/08/windows/events" xmlns:win="http://manifests.microsoft.com/win/2004/08/windows/events" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+		<events xmlns="http://schemas.microsoft.com/win/2004/08/events" xmlns:auto-ns1="urn:schemas-microsoft-com:asm.v3">
+			<!--
+           * Microsoft Windows Windeploy Provider *
+           Author: jasontho (Jason Thorsness)
+      -->
+			<provider guid="{75EBC33E-C8AE-4f93-9CA1-683A53E20CB6}" message="$(string.Windeploy.ProviderMessage)" messageFileName="%SystemRoot%\system32\oobe\windeploy.exe" name="Microsoft-Windows-Windeploy" resourceFileName="%SystemRoot%\system32\oobe\windeploy.exe" symbol="Microsoft_Windows_Windeploy">
+				<channels>
+					<channel chid="chaWindeployAnalytic" name="Microsoft-Windows-Windeploy/Analytic" type="Analytic"></channel>
+					<!-- This is the official Setup channel as seen in the Event Viewer. -->
+					<importChannel chid="chaSetup" name="Setup"></importChannel>
+				</channels>
+				<keywords>
+					<!-- Events with the Performance keyword come in opcode=win:start/win:stop pairs 
+               with the same task name.  An individual thread will complete once instance of
+               a task with a particular type before starting a new one. -->
+					<keyword mask="0x00000001" message="$(string.Performance.KeywordMessage)" name="keyPerformance"></keyword>
+					<!-- EVENTS_INCLUDE_MICROSOFT_TELEMETRY -->
+					<keyword mask="0x0000800000000000" name="ms:CriticalData"></keyword>
+					<keyword mask="0x0000400000000000" name="ms:Measures"></keyword>
+					<keyword mask="0x0000200000000000" name="ms:Telemetry"></keyword>
+					<keyword mask="0x0000100000000000" name="ms:ReservedKeyword44"></keyword>
+				</keywords>
+				<templates>
+					<template tid="tidCommandLine">
+						<data inType="win:UnicodeString" name="CommandLine"></data>
+					</template>
+					<template tid="tidErrorCodeResult">
+						<data inType="win:UInt32" name="ErrorCode"></data>
+					</template>
+					<template tid="tidExecutionStatus">
+						<data inType="win:UnicodeString" name="Command"></data>
+						<data inType="win:UInt32" name="ExitCode"></data>
+					</template>
+				</templates>
+				<tasks>
+					<task eventGUID="{4081FD79-E0CF-4565-9064-5F11A4D682C7}" message="$(string.RunWindeploy.TaskMessage)" name="tskRunWindeploy" value="1000"></task>
+					<task eventGUID="{07DC4E47-7C5C-40b5-A20D-C86E54FB1E19}" message="$(string.LaunchAndWaitFor.TaskMessage)" name="tskLaunchAndWaitFor" value="2000"></task>
+					<task eventGUID="{8D58F702-E815-4E47-BA6F-C6F1FC8DDB86}" message="$(string.RunUserProvidedScript.TaskMessage)" name="tskRunUserProvidedScript" value="3000"></task>
+				</tasks>
+				<events>
+					<!-- Official Setup Channel (Will show up in the Event Viewer) Events -->
+					<!-- Windeploy Analytic Events -->
+					<!-- Windeploy Enter/Exit -->
+					<event channel="chaWindeployAnalytic" keywords="keyPerformance ms:Telemetry" level="win:Informational" message="$(string.RunWindeploy.StartMessage)" opcode="win:Start" symbol="RunWindeployStart" task="tskRunWindeploy" template="tidCommandLine" value="1001"></event>
+					<event channel="chaWindeployAnalytic" keywords="keyPerformance ms:Telemetry" level="win:Informational" message="$(string.RunWindeploy.StopMessage)" opcode="win:Stop" symbol="RunWindeployStop" task="tskRunWindeploy" template="tidErrorCodeResult" value="1002"></event>
+					<!-- Launch and wait for process -->
+					<event channel="chaWindeployAnalytic" keywords="keyPerformance ms:Telemetry" level="win:Informational" message="$(string.LaunchAndWaitFor.StartMessage)" opcode="win:Start" symbol="LaunchAndWaitForStart" task="tskLaunchAndWaitFor" template="tidCommandLine" value="2001"></event>
+					<event channel="chaWindeployAnalytic" keywords="keyPerformance ms:Telemetry" level="win:Informational" message="$(string.LaunchAndWaitFor.StopMessageExecuted)" opcode="win:Stop" symbol="LaunchAndWaitForStopExecuted" task="tskLaunchAndWaitFor" template="tidErrorCodeResult" value="2002"></event>
+					<event channel="chaWindeployAnalytic" keywords="keyPerformance ms:Telemetry" level="win:Informational" message="$(string.LaunchAndWaitFor.StopMessageFailedToExecute)" opcode="win:Stop" symbol="LaunchAndWaitForStopFailedToExecute" task="tskLaunchAndWaitFor" template="tidErrorCodeResult" value="2003"></event>
+					<!-- Run user-provided script -->
+					<event channel="chaWindeployAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.RunUserProvidedScript.StartMessage)" opcode="win:Start" symbol="RunUserProvidedScriptStart" task="tskRunUserProvidedScript" template="tidCommandLine" value="3001"></event>
+					<event channel="chaWindeployAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.RunUserProvidedScript.StopMessageExecuted)" opcode="win:Stop" symbol="RunUserProvidedScriptStopExecuted" task="tskRunUserProvidedScript" template="tidExecutionStatus" value="3002"></event>
+					<event channel="chaWindeployAnalytic" keywords="keyPerformance" level="win:Informational" message="$(string.RunUserProvidedScript.StopMessageFailedToExecute)" opcode="win:Stop" symbol="RunUserProvidedScriptStopFailedToExecute" task="tskRunUserProvidedScript" template="tidExecutionStatus" value="3003"></event>
+				</events>
+			</provider>
+		</events>
+	</instrumentation>
+	<localization>
+		<resources culture="en-US">
+			<stringTable>
+				<!-- Keywords -->
+				<string id="Performance.KeywordMessage" value="Performance"></string>
+				<!-- Providers -->
+				<string id="Windeploy.ProviderMessage" value="Microsoft-Windows-Windeploy"></string>
+				<!-- RunWindeploy -->
+				<string id="RunWindeploy.TaskMessage" value="Run Windeploy"></string>
+				<string id="RunWindeploy.StartMessage" value="Windeploy.exe is running."></string>
+				<string id="RunWindeploy.StopMessage" value="Windeploy.exe exiting with status %1."></string>
+				<!-- LaunchAndWaitFor -->
+				<string id="LaunchAndWaitFor.TaskMessage" value="Launch and wait for external process"></string>
+				<string id="LaunchAndWaitFor.StartMessage" value="Launching &quot;%1&quot;."></string>
+				<string id="LaunchAndWaitFor.StopMessageExecuted" value="External process exited with status %1."></string>
+				<string id="LaunchAndWaitFor.StopMessageFailedToExecute" value="Failed to start external process with status %1."></string>
+				<!-- RunUserProvidedScript -->
+				<string id="RunUserProvidedScript.TaskMessage" value="Run user-provided script"></string>
+				<string id="RunUserProvidedScript.StartMessage" value="Running user-provided script: &quot;%1&quot;."></string>
+				<string id="RunUserProvidedScript.StopMessageExecuted" value="Successfully executed script: &quot;%1&quot;. Exit code is %2."></string>
+				<string id="RunUserProvidedScript.StopMessageFailedToExecute" value="Failed to execute script: &quot;%1&quot;.Exit code is %2."></string>
+			</stringTable>
+		</resources>
+	</localization>
+	<cbb:debuggingInfo xmlns:cbb="urn:schemas-microsoft-com:asm.internal.v1">
+		<cbb:sourceManifest sourcePath="%sdxmaproot%\onecore\base\ntsetup\opktools\windeploy\src\microsoft-windows-windeploy-instrumentation.man"></cbb:sourceManifest>
+	</cbb:debuggingInfo>
+</assembly>
